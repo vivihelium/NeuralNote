@@ -1,0 +1,41 @@
+name: Build Windows Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DNEURALNOTE_ASIO=OFF
+
+      - name: Build Release
+        run: |
+          cmake --build build --config Release --parallel
+
+      - name: Upload Standalone App
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuralNote-Windows-Standalone
+          path: build/NeuralNote_artefacts/Release/Standalone/
+
+      - name: Upload VST3 Plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuralNote-Windows-VST3
+          path: build/NeuralNote_artefacts/Release/VST3/
