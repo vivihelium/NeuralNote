@@ -51,6 +51,19 @@ NnToolbar::NnToolbar(NeuralNoteAudioProcessor& inProcessor)
     mTempoEditor->setIndents(mTempoEditor->getLeftIndent(), 0);
     addAndMakeVisible(*mTempoEditor);
 
+    mDetectBpmButton.setLabel("Detect", nn::fonts::pillLabel(), LABEL_TRACKING);
+    mDetectBpmButton.setPadding(8, 8, 0);
+    mDetectBpmButton.setColour(NnFlatButton::backgroundColourId, nn::colours::bgControlAlt);
+    mDetectBpmButton.setColour(NnFlatButton::textColourId, nn::colours::textDim);
+    mDetectBpmButton.setTooltip(NeuralNoteTooltips::detect_bpm);
+    mDetectBpmButton.setWantsKeyboardFocus(false);
+    mDetectBpmButton.onClick = [this] {
+        if (auto* sourceAudio = mProcessor.getSourceAudioManager()) {
+            sourceAudio->detectBpm();
+        }
+    };
+    addAndMakeVisible(mDetectBpmButton);
+
     mExportButton.setIcon(nn::icons::folderStroked, NnFlatButton::IconStyle::stroked, 13.0f);
     mExportButton.setLabel("Export MIDI out", nn::fonts::buttonLabel());
     mExportButton.setPadding(12, 12, 7);
@@ -98,6 +111,10 @@ void NnToolbar::resized()
     mTempoPill = bounds.removeFromRight(tempo_width).withSizeKeepingCentre(tempo_width, button_height);
     mTempoEditor->setBounds(
         mTempoPill.getX() + PILL_PADDING + label_width + PILL_GAP, mTempoPill.getY(), TEMPO_VALUE_WIDTH, button_height);
+
+    bounds.removeFromRight(nn::metrics::controlGap);
+    const int detect_width = mDetectBpmButton.getIdealWidth();
+    mDetectBpmButton.setBounds(bounds.removeFromRight(detect_width).withSizeKeepingCentre(detect_width, button_height));
 }
 
 void NnToolbar::paint(juce::Graphics& g)
@@ -110,7 +127,7 @@ void NnToolbar::paint(juce::Graphics& g)
     auto filename_area = getLocalBounds()
                              .withTrimmedBottom(1)
                              .reduced(PADDING_SIDE, 0)
-                             .withTrimmedRight(getWidth() - mTempoPill.getX() + FILENAME_GAP);
+                             .withTrimmedRight(getWidth() - mDetectBpmButton.getX() + FILENAME_GAP);
 
     // Nothing at all when there is no file: the waveform's drop zone right below already says the
     // window is empty, and a second sentence saying it is one too many.
@@ -124,12 +141,14 @@ void NnToolbar::paint(juce::Graphics& g)
 void NnToolbar::updateEnablements()
 {
     const bool is_finished = mProcessor.getState() == PopulatedAudioAndMidiRegions;
+    const bool has_audio = mProcessor.canPlay();
 
     // Export and drag stay off mid-transcription: a half-finished file gives no sign that it is one.
     mExportButton.setEnabled(is_finished);
     mDragButton.setEnabled(is_finished);
     mTempoEditor->setEnabled(is_finished);
     mTempoEditor->setAlpha(is_finished ? 1.0f : nn::DISABLED_ALPHA);
+    mDetectBpmButton.setEnabled(has_audio);
 
     // Not while recording: clearing would stop the recording behind the record button's back.
     const State state = mProcessor.getState();

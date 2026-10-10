@@ -41,6 +41,8 @@ const String add_instrument = "Restrict the transcription to chosen instruments"
 
 const String export_tempo = "Set export tempo for midi file";
 
+const String detect_bpm = "Detect BPM from the loaded audio";
+
 const String source_audio_level = "Set source audio level";
 
 const String internal_synth_level = "Set internal synth level";

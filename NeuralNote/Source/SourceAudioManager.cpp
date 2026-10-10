@@ -6,6 +6,7 @@
 
 #include "SourceAudioManager.h"
 #include "PluginProcessor.h"
+#include "BpmDetector.h"
 
 SourceAudioManager::SourceAudioManager(NeuralNoteAudioProcessor* inProcessor)
     : mProcessor(inProcessor)
@@ -455,4 +456,17 @@ void SourceAudioManager::_deleteFilesToDelete()
     }
 
     mFilesToDelete.clear();
+}
+
+double SourceAudioManager::detectBpm()
+{
+    if (mDownsampledSourceAudio.getNumSamples() <= 0) {
+        return 0.0;
+    }
+
+    const double bpm = BpmDetector::detectBpm(mDownsampledSourceAudio, TRANSCRIPTION_SAMPLE_RATE);
+    if (bpm > 0.0) {
+        mProcessor->getValueTree().setProperty(NnId::ExportTempoId, bpm, nullptr);
+    }
+    return bpm;
 }

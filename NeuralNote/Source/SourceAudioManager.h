@@ -114,6 +114,12 @@ public:
      */
     const WaveformPeaks& getWaveformPeaks() const;
 
+    /**
+     * Detects BPM of the loaded source audio and updates the ExportTempoId parameter.
+     * @return Estimated BPM, or 0.0 if not detected or no audio loaded.
+     */
+    double detectBpm();
+
 private:
     /**
      * Takes the downsampled audio straight off the writer's FIFO while recording, so the peaks grow
